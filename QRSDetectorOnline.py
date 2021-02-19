@@ -1,4 +1,3 @@
-import serial
 import numpy as np
 from collections import deque
 from time import gmtime, strftime
@@ -57,7 +56,7 @@ class QRSDetectorOnline(object):
     SOFTWARE.
     """
 
-    def __init__(self, port, baud_rate):
+    def __init__(self, data_path):
         """
         QRSDetector class initialisation method.
         :param str port: port to which ECG device is connected
@@ -69,13 +68,13 @@ class QRSDetectorOnline(object):
         self.number_of_samples_stored = 200  # Change proportionally when adjusting frequency (in samples).
         self.possible_measurement_upper_limit = 10  # ECG device physiologically upper measurement limit.
 
-        self.filter_lowcut = 0.1
+        self.filter_lowcut = 0.001
         self.filter_highcut = 15.0
         self.filter_order = 1
 
         self.integration_window = 15  # Change proportionally when adjusting frequency (in samples).
 
-        self.findpeaks_limit = 0.35
+        self.findpeaks_limit = 0.04
         self.findpeaks_spacing = 50  # Change proportionally when adjusting frequency (in samples).
         self.detection_window = 40  # Change proportionally when adjusting frequency (in samples).
 
@@ -98,32 +97,31 @@ class QRSDetectorOnline(object):
         self.log_path = "{:s}QRS_online_detector_log_{:s}.csv".format(LOG_DIR, strftime("%Y_%m_%d_%H_%M_%S", gmtime()))
 
         # Connect to ECG device and start the detector.
-        self.connect_to_ecg(port=port, baud_rate=baud_rate)
+        self.connect_to_ecg(data_path=data_path)
 
     """Setting connection to ECG device methods."""
 
-    def connect_to_ecg(self, port, baud_rate):
+    def connect_to_ecg(self, data_path):
         """
         Method responsible for connecting to ECG device and starting reading ECG measurements.
         :param str port: port to which ECG device is connected
         :param str baud_rate: baud rate of data received from ECG device
         """
-        try:
-            serial_port = serial.Serial(port, baud_rate)
-            self.log_data(self.log_path, "timestamp,ecg_measurement,qrs_detected\n")
-            print("Connected! Starting reading ECG measurements.")
-        except serial.SerialException:
-            print("Cannot connect to provided port!")
-            return
+        with open(data_path) as data:
+            fake_timestamp = 0
+            while True:
+                fake_timestamp += 4000
+                raw_measurement = data.readline()
+                if len(raw_measurement) == 0:
+                    print("read done")
+                    break
+                raw_measurement = str(fake_timestamp) + ',' + raw_measurement
+                self.process_measurement(raw_measurement=raw_measurement)
 
-        while True:
-            raw_measurement = serial_port.readline()
-            self.process_measurement(raw_measurement=raw_measurement)
-
-            if self.timestamp != 0:
-                self.log_data(self.log_path, "{:d},{:.10f},{:d}\n".format(int(self.timestamp),
-                                                                          self.measurement,
-                                                                          self.detected_qrs))
+                if self.timestamp != 0:
+                    self.log_data(self.log_path, "{:d},{:.10f},{:d}\n".format(int(self.timestamp),
+                                                                              self.measurement,
+                                                                              self.detected_qrs))
 
     """ECG measurements data processing methods."""
 
@@ -132,7 +130,7 @@ class QRSDetectorOnline(object):
         Method responsible for parsing and initial processing of ECG measured data sample.
         :param str raw_measurement: ECG most recent raw measurement in "timestamp,measurement" format
         """
-        raw_measurement_split = raw_measurement.decode().rstrip().split(',')
+        raw_measurement_split = raw_measurement.rstrip().split(',')
 
         # Parsing raw ECG data - modify this part in accordance to your device data format.
         if len(raw_measurement_split) != 2:
@@ -290,4 +288,4 @@ class QRSDetectorOnline(object):
 
 
 if __name__ == "__main__":
-    qrs_detector = QRSDetectorOnline(port="/dev/cu.usbmodem14311", baud_rate="115200")
+    qrs_detector = QRSDetectorOnline(data_path='ecg_data/data.txt')

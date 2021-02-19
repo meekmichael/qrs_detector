@@ -72,13 +72,13 @@ class QRSDetectorOffline(object):
 
         self.signal_frequency = 250  # Set ECG device frequency in samples per second here.
 
-        self.filter_lowcut = 0.0
+        self.filter_lowcut = 0.001
         self.filter_highcut = 15.0
         self.filter_order = 1
 
         self.integration_window = 15  # Change proportionally when adjusting frequency (in samples).
 
-        self.findpeaks_limit = 0.35
+        self.findpeaks_limit = 0.04
         self.findpeaks_spacing = 50  # Change proportionally when adjusting frequency (in samples).
 
         self.refractory_period = 120  # Change proportionally when adjusting frequency (in samples).
@@ -310,5 +310,5 @@ class QRSDetectorOffline(object):
 
 
 if __name__ == "__main__":
-    qrs_detector = QRSDetectorOffline(ecg_data_path="ecg_data/ecg_data_1.csv", verbose=True,
+    qrs_detector = QRSDetectorOffline(ecg_data_path="ecg_data/ecg_data_3.csv", verbose=True,
                                       log_data=True, plot_data=True, show_plot=False)
