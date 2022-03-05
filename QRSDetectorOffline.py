@@ -70,7 +70,7 @@ class QRSDetectorOffline(object):
         # Configuration parameters.
         self.ecg_data_path = ecg_data_path
 
-        self.signal_frequency = 250  # Set ECG device frequency in samples per second here.
+        self.signal_frequency = 300  # Set ECG device frequency in samples per second here.
 
         self.filter_lowcut = 0.001
         self.filter_highcut = 15.0
@@ -79,9 +79,9 @@ class QRSDetectorOffline(object):
         self.integration_window = 15  # Change proportionally when adjusting frequency (in samples).
 
         self.findpeaks_limit = 0.04
-        self.findpeaks_spacing = 50  # Change proportionally when adjusting frequency (in samples).
+        self.findpeaks_spacing = 60  # Change proportionally when adjusting frequency (in samples).
 
-        self.refractory_period = 120  # Change proportionally when adjusting frequency (in samples).
+        self.refractory_period = 150  # Change proportionally when adjusting frequency (in samples).
         self.qrs_peak_filtering_factor = 0.125
         self.noise_peak_filtering_factor = 0.125
         self.qrs_noise_diff_weight = 0.25
@@ -132,7 +132,7 @@ class QRSDetectorOffline(object):
         """
         Method loading ECG data set from a file.
         """
-        self.ecg_data_raw = np.loadtxt(self.ecg_data_path, skiprows=1, delimiter=',')
+        self.ecg_data_raw = np.loadtxt(self.ecg_data_path, skiprows=0, delimiter=',')
 
     """ECG measurements data processing methods."""
 
@@ -310,5 +310,5 @@ class QRSDetectorOffline(object):
 
 
 if __name__ == "__main__":
-    qrs_detector = QRSDetectorOffline(ecg_data_path="ecg_data/ecg_data_3.csv", verbose=True,
+    qrs_detector = QRSDetectorOffline(ecg_data_path="k", verbose=True,
                                       log_data=True, plot_data=True, show_plot=False)
