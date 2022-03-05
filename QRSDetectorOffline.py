@@ -140,6 +140,11 @@ class QRSDetectorOffline(object):
         Method loading ECG data set from a file.
         """
         self.ecg_data_raw = np.loadtxt(self.ecg_data_path, skiprows=0, delimiter=',')
+        # if no timestamps, just add an empty column
+        if len(self.ecg_data_raw.shape) < 2:
+            z = np.zeros(self.ecg_data_raw.shape[0])
+            self.ecg_data_raw = np.stack((z, self.ecg_data_raw), axis=1)
+        self.ecg_data_raw
 
     """ECG measurements data processing methods."""
 
