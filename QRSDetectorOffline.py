@@ -1,3 +1,6 @@
+# -*- coding:utf-8 -*-
+import json
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from time import gmtime, strftime
@@ -58,11 +61,12 @@ class QRSDetectorOffline(object):
     SOFTWARE.
     """
 
-    def __init__(self, ecg_data_path, verbose=True, log_data=False, plot_data=False, show_plot=False):
+    def __init__(self, ecg_data_path, verbose=True, rr_intervals=False, log_data=False, plot_data=False, show_plot=False):
         """
         QRSDetectorOffline class initialisation method.
         :param string ecg_data_path: path to the ECG dataset
         :param bool verbose: flag for printing the results
+        :param book rr_intervals: flag for printing rr intervals as json
         :param bool log_data: flag for logging the results
         :param bool plot_data: flag for plotting the results to a file
         :param bool show_plot: flag for showing generated results plot - will not show anything if plot is not generated
@@ -70,18 +74,18 @@ class QRSDetectorOffline(object):
         # Configuration parameters.
         self.ecg_data_path = ecg_data_path
 
-        self.signal_frequency = 300  # Set ECG device frequency in samples per second here.
+        self.signal_frequency = 300  # Set ECG device frequency in samples per second here. changed for kardia
 
         self.filter_lowcut = 0.001
         self.filter_highcut = 15.0
         self.filter_order = 1
 
-        self.integration_window = 15  # Change proportionally when adjusting frequency (in samples).
+        self.integration_window = 15  # Change proportionally when adjusting frequency (in samples). changed for kardia
 
         self.findpeaks_limit = 0.04
-        self.findpeaks_spacing = 60  # Change proportionally when adjusting frequency (in samples).
+        self.findpeaks_spacing = 60  # Change proportionally when adjusting frequency (in samples). changed for kardia
 
-        self.refractory_period = 150  # Change proportionally when adjusting frequency (in samples).
+        self.refractory_period = 150  # Change proportionally when adjusting frequency (in samples). changed for kardia
         self.qrs_peak_filtering_factor = 0.125
         self.noise_peak_filtering_factor = 0.125
         self.qrs_noise_diff_weight = 0.25
@@ -115,6 +119,9 @@ class QRSDetectorOffline(object):
 
         if verbose:
             self.print_detection_data()
+
+        if rr_intervals:
+            self.print_rr_intervals()
 
         if log_data:
             self.log_path = "{:s}QRS_offline_detector_log_{:s}.csv".format(LOG_DIR,
@@ -216,6 +223,18 @@ class QRSDetectorOffline(object):
         print("noise peaks indices")
         print(self.noise_peaks_indices)
 
+    def print_rr_intervals(self):
+        """
+        Method to print rr intervals (in milliseconds) for input to Kubios
+        """
+        last_peak=0
+        rrs=[]
+        for peak in self.qrs_peaks_indices:
+            rrs.append(1000 * ( (peak-last_peak)* (1/self.signal_frequency)))
+            last_peak=peak
+        rrs.pop(0) # remove first element as its potentially noise
+        print(json.dumps(rrs))
+
     def log_detection_data(self):
         """
         Method responsible for logging measured ECG and detection results to a file.
@@ -310,5 +329,8 @@ class QRSDetectorOffline(object):
 
 
 if __name__ == "__main__":
-    qrs_detector = QRSDetectorOffline(ecg_data_path="k", verbose=True,
+    if len(sys.argv) < 2:
+        print("syntax QRSDetectorOffline.py <ecg lead series>")
+        sys.exit(1)
+    qrs_detector = QRSDetectorOffline(ecg_data_path=sys.argv[1], verbose=False, rr_intervals=True,
                                       log_data=True, plot_data=True, show_plot=False)
