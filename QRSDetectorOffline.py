@@ -14,10 +14,9 @@ PLOT_DIR = "plots/"
 class QRSDetectorOffline(object):
     """
     Python Offline ECG QRS Detector based on the Pan-Tomkins algorithm.
-    
+
     Michał Sznajder (Jagiellonian University) - technical contact (msznajder@gmail.com)
     Marta Łukowska (Jagiellonian University)
-
 
     The module is offline Python implementation of QRS complex detection in the ECG signal based
     on the Pan-Tomkins algorithm: Pan J, Tompkins W.J., A real-time QRS detection algorithm,
@@ -76,13 +75,13 @@ class QRSDetectorOffline(object):
 
         self.signal_frequency = 300  # Set ECG device frequency in samples per second here. changed for kardia
 
-        self.filter_lowcut = 0.001
+        self.filter_lowcut = 0.001 # putting back to 0 breaks things
         self.filter_highcut = 15.0
         self.filter_order = 1
 
-        self.integration_window = 15  # Change proportionally when adjusting frequency (in samples). changed for kardia
+        self.integration_window = 18  # Change proportionally when adjusting frequency (in samples). changed for kardia
 
-        self.findpeaks_limit = 0.04
+        self.findpeaks_limit = 0.35 # 0.04
         self.findpeaks_spacing = 60  # Change proportionally when adjusting frequency (in samples). changed for kardia
 
         self.refractory_period = 150  # Change proportionally when adjusting frequency (in samples). changed for kardia
@@ -153,7 +152,9 @@ class QRSDetectorOffline(object):
         Method responsible for extracting peaks from loaded ECG measurements data through measurements processing.
         """
         # Extract measurements from loaded ECG data.
+
         ecg_measurements = self.ecg_data_raw[:, 1]
+
 
         # Measurements filtering - 0-15 Hz band pass filter.
         self.filtered_ecg_measurements = self.bandpass_filter(ecg_measurements, lowcut=self.filter_lowcut,
@@ -338,4 +339,4 @@ if __name__ == "__main__":
         print("syntax QRSDetectorOffline.py <ecg lead series>")
         sys.exit(1)
     qrs_detector = QRSDetectorOffline(ecg_data_path=sys.argv[1], verbose=False, rr_intervals=True,
-                                      log_data=True, plot_data=True, show_plot=False)
+                                      log_data=False, plot_data=False, show_plot=False)

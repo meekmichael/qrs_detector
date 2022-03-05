@@ -139,4 +139,5 @@ src
 *.map
 .idea/
 Read the Docs
-config.rst
+config.rstlogs
+plots
